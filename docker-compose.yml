@@ -1,0 +1,40 @@
+version: '3.9'
+
+networks:
+  otel-example:
+
+volumes:
+  otel-react-app-cache:
+  otel-db:
+
+services:
+  otel-react-app:
+    restart: "no"
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - "./:/app"
+      - "otel-react-app-cache:/root/.cache/pip"
+    environment:
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
+    networks:
+      otel-example:
+    working_dir: "/app"
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "4317:4317"   # OTLP gRPC receiver
+      - "4318:4318"   # OTLP http receiver
+    environment:
+     - DD_SITE=datadoghq.com
+    env_file:
+      - ./.env
+    networks:
+      otel-example:

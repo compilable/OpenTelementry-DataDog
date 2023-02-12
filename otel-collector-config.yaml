@@ -1,0 +1,32 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+      http:
+        cors:
+          allowed_origins:
+            - http://localhost:3000     
+
+processors:
+  batch:
+
+exporters:
+  datadog:
+    api:
+      site: ${DD_SITE}
+      key: ${DD_API_KEY}
+
+service:
+  telemetry:
+    logs:
+      level: "debug"
+
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [datadog]
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [datadog]
